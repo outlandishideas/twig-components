@@ -18,9 +18,9 @@ final class SlotNode extends Node implements NodeOutputInterface
         $name = $this->getAttribute('name');
 
         $compiler
-            ->write('ob_start();')
+            ->write('ob_start();' . PHP_EOL)
             ->subcompile($this->getNode('body'))
             ->write('$body = ob_get_clean();' . PHP_EOL)
-            ->write("\$slots['$name'] = new " . SlotBag::class . "(\$body);");
+            ->write("\$slots['$name'] = new " . SlotBag::class . "(\$body);" . PHP_EOL . PHP_EOL);
     }
 }

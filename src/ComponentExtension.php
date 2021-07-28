@@ -3,6 +3,7 @@
 namespace Performing\TwigComponents;
 
 use Twig\Extension\AbstractExtension;
+use Twig\TwigFunction;
 
 class ComponentExtension extends AbstractExtension
 {
@@ -22,5 +23,23 @@ class ComponentExtension extends AbstractExtension
             new ComponentTokenParser($this->relativePath),
             new SlotTokenParser(),
         ];
+    }
+
+    public function getFunctions()
+    {
+        return [
+            new TwigFunction('inherited', [$this, 'getInherited'], ['needs_context' => true])
+        ];
+    }
+
+    public function getInherited($context, $name, $default = null)
+    {
+        if (isset($context[$name])) {
+            return $context[$name];
+        }
+        if (isset($context['_inherited'])) {
+            return $this->getInherited($context['_inherited'], $name, $default);
+        }
+        return $default;
     }
 }

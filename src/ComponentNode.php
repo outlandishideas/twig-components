@@ -30,21 +30,23 @@ final class ComponentNode extends IncludeNode
 
         $compiler
             ->write(sprintf("if ($%s) {\n", $template))
-            ->write('$slotsStack = $slotsStack ?? [];' . PHP_EOL)
-            ->write('$slotsStack[] = $slots ?? [];' . PHP_EOL)
-            ->write('$slots = [];' . PHP_EOL)
-            ->write("ob_start();"  . PHP_EOL)
-            ->subcompile($this->getNode('slot'))
-            ->write('$slot = ob_get_clean();' . PHP_EOL)
-            ->write(sprintf('$%s->display(', $template))
+            ->indent(1)
+                ->write('$slotsStack = $slotsStack ?? [];' . PHP_EOL)
+                ->write('$slotsStack[] = $slots ?? [];' . PHP_EOL)
+                ->write('$slots = [];' . PHP_EOL)
+                ->write("ob_start();"  . PHP_EOL)
+                ->subcompile($this->getNode('slot'))
+                ->write("\$slots['slot'] = new " . SlotBag::class . "(ob_get_clean());" . PHP_EOL)
+                ->write(sprintf('$%s->display(', $template))
         ;
 
         $this->addTemplateArguments($compiler);
 
         $compiler
-            ->raw(");\n")
-            ->write('$slots = array_pop($slotsStack);' . PHP_EOL)
-            ->write("}\n")
+                ->write(');' . PHP_EOL)
+                ->write('$slots = array_pop($slotsStack);' . PHP_EOL)
+                ->indent(-1)
+            ->write('}' . PHP_EOL)
         ;
     }
 
@@ -53,16 +55,17 @@ final class ComponentNode extends IncludeNode
         $compiler
             ->raw('$this->loadTemplate(' . PHP_EOL)
             ->indent(1)
-            ->write('')
-            ->repr($this->getTemplateName())
-            ->raw(', ' . PHP_EOL)
-            ->write('')
-            ->repr($this->getTemplateName())
-            ->raw(', ' . PHP_EOL)
-            ->write('')
-            ->repr($this->getTemplateLine())
-            ->indent(-1)
-            ->raw(PHP_EOL . ');' . PHP_EOL . PHP_EOL)
+                ->write('')
+                ->repr($this->getTemplateName())
+                ->raw(', ' . PHP_EOL)
+                ->write('')
+                ->repr($this->getTemplateName())
+                ->raw(', ' . PHP_EOL)
+                ->write('')
+                ->repr($this->getTemplateLine())
+                ->indent(-1)
+            ->raw(PHP_EOL)
+            ->write(');' . PHP_EOL . PHP_EOL)
         ;
     }
 
@@ -75,28 +78,36 @@ final class ComponentNode extends IncludeNode
     {
         $compiler
         ->indent(1)
-        ->write("\n")
-        ->write("array_merge(\n")
-        ->write('$slots,[' . PHP_EOL)
-        ->write("'slot' => new  " . SlotBag::class . " (\$slot),\n")
-        ->write("'attributes' => new " . AttributesBag::class . "(");
+            ->raw(PHP_EOL)
+            ->write('array_merge(' . PHP_EOL)
+            ->indent(1)
+                ->write('$slots,' . PHP_EOL)
+                ->write('[' . PHP_EOL)
+                ->indent(1)
+                    ->write("'_inherited' => new " . AttributesBag::class . '($context),' . PHP_EOL)
+                    ->write("'attributes' => new " . AttributesBag::class . '(');
 
-        if ($this->hasNode('variables')) {
-            $compiler->subcompile($this->getNode('variables'), true);
-        } else {
-            $compiler->raw('[]');
-        }
+                    if ($this->hasNode('variables')) {
+                        $compiler->subcompile($this->getNode('variables'), true);
+                    } else {
+                        $compiler->raw('[]');
+                    }
 
-        $compiler->write(")\n")
+        $compiler
+                ->raw(')' . PHP_EOL)
                 ->indent(-1)
-                ->write("],");
+            ->write('],' . PHP_EOL);
 
         if ($this->hasNode('variables')) {
-            $compiler->subcompile($this->getNode('variables'), true);
+            $compiler->subcompile($this->getNode('variables'), false);
         } else {
-            $compiler->raw('[]');
+            $compiler->write('[]');
         }
 
-        $compiler->write(")\n");
+        $compiler
+            ->indent(-1)
+        ->raw(PHP_EOL)
+        ->write(')' . PHP_EOL)
+        ->indent(-1);
     }
 }
