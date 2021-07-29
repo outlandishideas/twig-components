@@ -1,0 +1,3 @@
+{% set a = attributes.get(name, 'not found') %}
+{% set i = inherited(name, 'not found') %}
+<span>attr: {{ a }}, inherited: {{ i }}</span>

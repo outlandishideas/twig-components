@@ -37,7 +37,17 @@ final class ComponentNode extends IncludeNode
                 ->write("ob_start();"  . PHP_EOL)
                 ->subcompile($this->getNode('slot'))
                 ->write("\$slots['slot'] = new " . SlotBag::class . "(ob_get_clean());" . PHP_EOL)
-                ->write(sprintf('$%s->display(', $template))
+                ->write('$attributes = ');
+
+                    if ($this->hasNode('variables')) {
+                        $compiler->subcompile($this->getNode('variables'), true);
+                    } else {
+                        $compiler->raw('[]');
+                    }
+
+                $compiler
+                    ->raw(';' . PHP_EOL)
+                    ->write(sprintf('$%s->display(', $template))
         ;
 
         $this->addTemplateArguments($compiler);
@@ -77,37 +87,21 @@ final class ComponentNode extends IncludeNode
     protected function addTemplateArguments(Compiler $compiler)
     {
         $compiler
-        ->indent(1)
-            ->raw(PHP_EOL)
-            ->write('array_merge(' . PHP_EOL)
             ->indent(1)
-                ->write('$slots,' . PHP_EOL)
-                ->write('[' . PHP_EOL)
+                ->raw(PHP_EOL)
+                ->write('array_merge(' . PHP_EOL)
                 ->indent(1)
-                    ->write("'_inherited' => new " . AttributesBag::class . '($context),' . PHP_EOL)
-                    ->write("'attributes' => new " . AttributesBag::class . '(');
-
-                    if ($this->hasNode('variables')) {
-                        $compiler->subcompile($this->getNode('variables'), true);
-                    } else {
-                        $compiler->raw('[]');
-                    }
-
-        $compiler
-                ->raw(')' . PHP_EOL)
+                    ->write('$slots,' . PHP_EOL)
+                    ->write('[' . PHP_EOL)
+                    ->indent(1)
+                        ->write("'_inherited' => new " . AttributesBag::class . '($context),' . PHP_EOL)
+                        ->write("'attributes' => new " . AttributesBag::class . '($attributes)' . PHP_EOL)
+                    ->indent(-1)
+                    ->write('],' . PHP_EOL)
+                    ->write('$attributes' . PHP_EOL)
                 ->indent(-1)
-            ->write('],' . PHP_EOL);
-
-        if ($this->hasNode('variables')) {
-            $compiler->subcompile($this->getNode('variables'), false);
-        } else {
-            $compiler->write('[]');
-        }
-
-        $compiler
-            ->indent(-1)
-        ->raw(PHP_EOL)
-        ->write(')' . PHP_EOL)
-        ->indent(-1);
+                ->raw(PHP_EOL)
+                ->write(')' . PHP_EOL)
+            ->indent(-1);
     }
 }

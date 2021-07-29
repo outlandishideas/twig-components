@@ -123,4 +123,16 @@ class ComponentTest extends TestCase
         </div>
         HTML, $html);
     }
+
+    /** @test
+     * Checks that context variables outside of the component's scope are still available using inherited()
+     */
+    public function render_included_component()
+    {
+        $html = $this->twig->render('test_inherited.twig');
+
+        $this->assertEquals(<<<HTML
+        <button class="text-white">    <span>attr: not found, inherited: bar</span></button>
+        HTML, $html);
+    }
 }
