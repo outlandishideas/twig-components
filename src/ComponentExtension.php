@@ -28,7 +28,7 @@ class ComponentExtension extends AbstractExtension
     public function getFunctions()
     {
         return [
-            new TwigFunction('inherited', [ComponentTwigFunctions::class, 'getInherited'], ['needs_context' => true])
+            new TwigFunction('inherited', [ComponentUtilities::class, 'getInherited'], ['needs_context' => true])
         ];
     }
 }

@@ -120,6 +120,7 @@ class ComponentTest extends TestCase
          1
          {"foo":1}
          bar
+         bar
         </div>
         HTML, $html);
     }

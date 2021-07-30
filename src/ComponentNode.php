@@ -37,7 +37,7 @@ final class ComponentNode extends IncludeNode
                 ->write("ob_start();"  . PHP_EOL)
                 ->subcompile($this->getNode('slot'))
                 ->write("\$slots['slot'] = new " . SlotBag::class . "(ob_get_clean());" . PHP_EOL)
-                ->write('$attributes = ');
+                ->write('$attributes = ' . ComponentUtilities::class . '::camelCaseKeys(');
 
                     if ($this->hasNode('variables')) {
                         $compiler->subcompile($this->getNode('variables'), true);
@@ -46,7 +46,7 @@ final class ComponentNode extends IncludeNode
                     }
 
                 $compiler
-                    ->raw(';' . PHP_EOL)
+                    ->raw(');' . PHP_EOL)
                     ->write(sprintf('$%s->display(', $template))
         ;
 
